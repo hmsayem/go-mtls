@@ -7,9 +7,10 @@ import (
 	"log"
 	"net/http"
 )
+
 var router = mux.NewRouter()
 
-func matcher(w http.ResponseWriter, r *http.Request){
+func matcher(w http.ResponseWriter, r *http.Request) {
 	err := json.NewEncoder(w).Encode("Hello World!")
 	if err != nil {
 		fmt.Println(err)
@@ -23,5 +24,5 @@ func handleRequest() {
 
 func main() {
 	handleRequest()
-	log.Fatalln(http.ListenAndServe(":8000", router))
+	log.Fatalln(http.ListenAndServeTLS(":8443", "cert.pem", "key.pem", router))
 }
