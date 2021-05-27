@@ -1,9 +1,12 @@
 package main
 
 import (
+	"crypto/tls"
+	"crypto/x509"
 	"encoding/json"
 	"fmt"
 	"github.com/gorilla/mux"
+	"io/ioutil"
 	"log"
 	"net/http"
 )
@@ -24,5 +27,21 @@ func handleRequest() {
 
 func main() {
 	handleRequest()
-	log.Fatalln(http.ListenAndServeTLS(":8443", "cert.pem", "key.pem", router))
+	caCert, err := ioutil.ReadFile("cert.pem")
+	if err != nil {
+		log.Println(err)
+	}
+	caCertPool := x509.NewCertPool()
+	caCertPool.AppendCertsFromPEM(caCert)
+	tlsConfig := &tls.Config{
+		ClientCAs:  caCertPool,
+		ClientAuth: tls.RequireAndVerifyClientCert,
+	}
+	tlsConfig.BuildNameToCertificate()
+	server := &http.Server{
+		Addr:      ":8443",
+		TLSConfig: tlsConfig,
+		Handler:   router,
+	}
+	log.Fatalln(server.ListenAndServeTLS("cert.pem", "key.pem"))
 }
